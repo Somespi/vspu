@@ -177,27 +177,39 @@ void CPU::execute(uint8_t opcode) {
     }
 
 
-    else if (opcode >= 0x35 && opcode <= 0x42) { // MULT
-        registers.arithmetic[static_cast<int>(opcode) - 35] *= memory[++registers.ip];
-        registers.flags.zero = (registers.arithmetic[static_cast<int>(opcode) - 35] == 0);
-       }
+    else if (opcode == 0x35) { // MULT
+        registers.ip++;
+        uint8_t reg1 = memory[registers.ip];
+        registers.arithmetic[reg1 - 1] *= memory[++registers.ip];
+        registers.ip++;
+        }
 
-    else if (opcode >= 0x43 && opcode <= 0x50) { // DIV
-        registers.arithmetic[static_cast<int>(opcode) - 43] /= memory[++registers.ip];
-        registers.flags.zero = (registers.arithmetic[static_cast<int>(opcode) - 43] == 0);
-      }
-    else if (opcode >= 0x51 && opcode <= 0x58) { // AND
-       registers.arithmetic[opcode - 0x51] &= memory[++registers.ip];
-       registers.flags.zero = (registers.arithmetic[opcode - 0x51] == 0);
-      }
-    else if (opcode >= 0x59 && opcode <= 0x60) { // OR
-         registers.arithmetic[opcode - 0x59] |= memory[++registers.ip];
-         registers.flags.zero = (registers.arithmetic[opcode - 0x59] == 0);
-     }
-    else if (opcode >= 0x61 && opcode <= 0x68) { // XOR
-       registers.arithmetic[opcode - 0x61] ^= memory[++registers.ip];
-       registers.flags.zero = (registers.arithmetic[opcode - 0x61] == 0);
-     }
+    else if (opcode == 0x43) { // DIV
+        registers.ip++;
+        uint8_t reg1 = memory[registers.ip];
+        registers.arithmetic[reg1 - 1] /= memory[++registers.ip];
+        registers.ip++;
+        }
+
+    else if (opcode == 0x51) { // AND
+          registers.ip++;
+          uint8_t reg1 = memory[registers.ip];
+          registers.arithmetic[reg1 - 1] &= memory[++registers.ip];
+          registers.ip++;
+          }
+    else if (opcode == 0x59) { // OR
+        registers.ip++;
+        uint8_t reg1 = memory[registers.ip];
+        registers.arithmetic[reg1 - 1] |= memory[++registers.ip];
+        registers.ip++;
+        }
+
+    else if (opcode == 0x61) { // XOR
+         registers.ip++;
+         uint8_t reg1 = memory[registers.ip];
+         registers.arithmetic[reg1 - 1] ^= memory[++registers.ip];
+         registers.ip++;
+    }
 
     else if (opcode == 0x69) { // HLT
         registers.flags.halted = true;
