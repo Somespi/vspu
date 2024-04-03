@@ -1,9 +1,11 @@
 #include "cpu.h"
 #include <iostream>
 
+
 CPU::CPU() {
     reset(); 
 }
+
 
 void CPU::reset() {
 
@@ -22,32 +24,47 @@ void CPU::reset() {
 int8_t* CPU::get_memory() {
     return memory;
 }
-void CPU::jump_by_instruction(uint8_t number) {
-    for (int i = 0; i < number; i++) {
-        while (memory[registers.ip] != 0x00) registers.ip++;
-    }
-    registers.ip++;
 
+void CPU::jump_by_instruction(uint8_t number) {
+    int counter = 0;
+    if (number == 0) registers.ip = 0;
+    for (registers.ip = 0; registers.ip < 256; registers.ip++) {
+        if (memory[registers.ip] == 0x00) {
+            ++counter;
+            if (counter == number + 1) {
+                ++registers.ip;  
+                return;
+            }
+        }
+    }
+    registers.ip = 256;
 }
 
 void CPU::execute(uint8_t opcode) {
-    if (registers.flags.halted) return;
-    if (opcode == 0x00) return;
-    else if (opcode >= 0x01 && opcode <= 0x08) { // MOV
-        registers.arithmetic[static_cast<int>(opcode) - 1] = memory[++registers.ip];
-        registers.flags.zero = (registers.arithmetic[static_cast<int>(opcode) - 1] == 0);
 
+    if (registers.flags.halted) std::exit(0);
+    if (opcode == 0x00) ++registers.ip; 
+    else if (opcode == 0x01) { // MOV
+        registers.ip++; 
+        uint8_t reg1 = memory[registers.ip];  
+        registers.arithmetic[reg1 - 1] = memory[++registers.ip];
+        registers.ip++;
     }
-    else if (opcode >= 0x09 && opcode <= 0x16) { // ADD
-        registers.arithmetic[static_cast<int>(opcode) - 9] += memory[++registers.ip];
-        registers.flags.zero = (registers.arithmetic[static_cast<int>(opcode) - 9] == 0);
 
+    else if (opcode == 0x02) { // ADD
+        registers.ip++;
+        uint8_t reg1 = memory[registers.ip];
+        registers.arithmetic[reg1 - 1] += memory[++registers.ip];
+        registers.ip++;
     }
-    else if (opcode >= 0x17 && opcode <= 0x24) { // SUB
-        registers.arithmetic[static_cast<int>(opcode) - 17] -= memory[++registers.ip];
-        registers.flags.zero = (registers.arithmetic[static_cast<int>(opcode) - 17] == 0);
 
+    else if (opcode == 0x03) { // SUB
+        registers.ip++;
+        uint8_t reg1 = memory[registers.ip];
+        registers.arithmetic[reg1 - 1] -= memory[++registers.ip];
+        registers.ip++;
     }
+
     else if (opcode == 0x25) { // JMP
         jump_by_instruction(memory[++registers.ip]);
     }
@@ -56,7 +73,7 @@ void CPU::execute(uint8_t opcode) {
             jump_by_instruction(memory[++registers.ip]);
         }
         else {
-            ++registers.ip;
+            while (!get_memory()[registers.ip] == 0x00) ++registers.ip;
         }
     }
 
@@ -65,7 +82,7 @@ void CPU::execute(uint8_t opcode) {
             jump_by_instruction(memory[++registers.ip]);
         }
         else {
-            ++registers.ip;
+            while (!get_memory()[registers.ip] == 0x00) ++registers.ip;
         }
 
     }
@@ -75,7 +92,7 @@ void CPU::execute(uint8_t opcode) {
             jump_by_instruction(memory[++registers.ip]);
         }
         else {
-            ++registers.ip;
+            while (!get_memory()[registers.ip] == 0x00) ++registers.ip;
         }
 
     }
@@ -85,7 +102,7 @@ void CPU::execute(uint8_t opcode) {
             jump_by_instruction(memory[++registers.ip]);
         }
         else {
-            ++registers.ip;
+            while (!get_memory()[registers.ip] == 0x00) ++registers.ip;
         }
 
     }
@@ -95,7 +112,7 @@ void CPU::execute(uint8_t opcode) {
             jump_by_instruction(memory[++registers.ip]);
         }
         else {
-            ++registers.ip;
+            while (!get_memory()[registers.ip] == 0x00) ++registers.ip;
         }
 
     }
@@ -106,7 +123,7 @@ void CPU::execute(uint8_t opcode) {
             jump_by_instruction(memory[++registers.ip]);
         }
         else {
-            ++registers.ip;
+            while (!get_memory()[registers.ip] == 0x00) ++registers.ip;
         }
 
     }
@@ -116,7 +133,7 @@ void CPU::execute(uint8_t opcode) {
             jump_by_instruction(memory[++registers.ip]);
         }
         else {
-            ++registers.ip;
+            while (!get_memory()[registers.ip] == 0x00) ++registers.ip;
         }
 
     }
@@ -126,19 +143,39 @@ void CPU::execute(uint8_t opcode) {
             jump_by_instruction(memory[++registers.ip]);
         }
         else {
-            ++registers.ip;
+            while (!get_memory()[registers.ip] == 0x00) ++registers.ip;
         }
 
     }
-
     else if (opcode == 0x34) { // CMP
-        int8_t result = registers.arithmetic[++registers.ip] - registers.arithmetic[++registers.ip];
-        registers.flags.carry = (result < 0);
-        registers.flags.sign = ((result < 0) ? -1 : 1);
-        registers.flags.parity = ((result % 2 == 0) ? 1 : 0);
-        registers.flags.zero = (result == 0);
-        ++registers.ip;
+        registers.ip++;
+
+        if (registers.ip < 256 && memory[registers.ip] != 0x00) {
+            int8_t reg1 = registers.arithmetic[get_memory()[registers.ip] - 1];
+
+            registers.ip++;
+            if (registers.ip < 256 && memory[registers.ip] != 0x00) {
+                int8_t reg2 = registers.arithmetic[get_memory()[registers.ip] - 1];
+
+                int8_t result = reg1 - reg2;
+                registers.flags.carry = (result < 0);
+                registers.flags.sign = ((result < 0) ? -1 : 1);
+                registers.flags.parity = ((result % 2 == 0) ? 1 : 0);
+                registers.flags.zero = (result == 0);
+                registers.flags.equal = (reg1 == reg2);
+
+                while (registers.ip < 256 && memory[registers.ip] != 0x00)  registers.ip++;
+                //registers.ip++;  
+            }
+            else {
+                registers.flags.halted = true;
+            }
+        }
+        else {
+            registers.flags.halted = true;
+        }
     }
+
 
     else if (opcode >= 0x35 && opcode <= 0x42) { // MULT
         registers.arithmetic[static_cast<int>(opcode) - 35] *= memory[++registers.ip];
@@ -165,6 +202,27 @@ void CPU::execute(uint8_t opcode) {
     else if (opcode == 0x69) { // HLT
         registers.flags.halted = true;
     }
+
+    else if (opcode == 0x70) { //JEQ
+        if (registers.flags.equal) {
+            jump_by_instruction(memory[++registers.ip]);
+        }
+        else {
+            while (!get_memory()[registers.ip] == 0x00) ++registers.ip;
+        }
+    }
+
+    else if (opcode == 0x71) { // JNE
+
+        if (!registers.flags.equal) {
+            jump_by_instruction(memory[++registers.ip]);
+        }
+        else {
+            ++registers.ip;
+            ++registers.ip;
+            ++registers.ip;
+        }
+     }
 
 
 }

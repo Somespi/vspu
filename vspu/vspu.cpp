@@ -5,11 +5,11 @@ int main() {
     CPU cpu;
     
     uint8_t memory[256] = {
-        0x01, 0x02, 0x00, // MOV reg1, 2
-        0x03, 0x04, 0x00, // MOV reg3, 4
-        0x25, 0x03, 0x00, // JMP 1
-        0x05, 0x06, 0x00, // MOV reg5, 6 (not executed)
-        
+        0x01, 0x01, 0x04, 0x00, // MOV reg1, 4
+        0x01, 0x02, 0x06, 0x00, // MOV reg2, 6
+        0x02, 0x01, 0x02, 0x00, // ADD reg1, 2
+        0x34, 0x01, 0x02, 0x00, // CMP reg1, reg2
+        0x71, 0x02, 0x00, // JNE 2
     };
 
 
@@ -17,10 +17,9 @@ int main() {
 
     cpu.set_memory(memory);
 
-    while (cpu.registers.ip < 256) {
+    while (cpu.registers.ip <= sizeof(cpu.get_memory())/sizeof(int8_t)) {
         uint8_t opcode = cpu.get_memory()[cpu.registers.ip];
         cpu.execute(opcode);
-        cpu.registers.ip++;
     }
 
     std::cout << "Final Register State:\n";

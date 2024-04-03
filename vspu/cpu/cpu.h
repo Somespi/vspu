@@ -7,6 +7,7 @@ struct Flags {
     int8_t parity;
     int8_t sign;
     bool carry;
+    bool equal;
     bool halted;
 };
 
