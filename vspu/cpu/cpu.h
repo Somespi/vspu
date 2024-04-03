@@ -29,7 +29,10 @@ public:
     Registers registers;
 
 
+
 private:
     int8_t memory[256];
     void jump_by_instruction(uint8_t number);
+    void jmp_if(bool condition);
+    void do_operation_of(char operator_);
 };
