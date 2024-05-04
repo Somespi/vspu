@@ -1,5 +1,6 @@
 ﻿#include "vspu.h"
 #include "cpu/cpu.h"
+#include "assembler/lexer/lexer.h"
 
 int main() {
     CPU cpu;
@@ -14,21 +15,22 @@ int main() {
     };
 
 
-
-    cpu.set_memory(memory);
+    /*cpu.set_memory(memory);
 
     while (cpu.registers.ip <= 256) {
         std::cout << (int)cpu.registers.ip << "\n";
         uint8_t opcode = cpu.get_memory()[cpu.registers.ip];
         cpu.execute(opcode);
        
-    }
+    }*/
 
-    std::cout << "Final Register State:\n";
-    int i = 1;
-    for (int8_t reg : cpu.registers.arithmetic) {
-        std::cout << "Register " << i << ": " << static_cast<int>(reg) << std::endl;
-        i++;
+    Lexer lexer("<stdout>", "0x3456");
+    std::vector<Token> tokens = lexer.lex();
+    for (auto token : tokens) {
+        std::cout << "{\n"
+            << "   type:    " << (int)token.type << "\n"
+            << "   literal: " << token.literal << "\n"
+            "}\n";
     }
     return 0;
 }
