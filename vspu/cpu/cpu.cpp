@@ -24,23 +24,33 @@ void CPU::reset() {
 int8_t* CPU::get_memory() {
 	return memory;
 }
-
 void CPU::jump_by_instruction(uint8_t number) {
-	int counter = 0;
-	if (number == 0) registers.ip = 0;
-	for (registers.ip = 0; registers.ip < 256; registers.ip++) {
-		if (memory[registers.ip] == 0x00) {
-			++counter;
-			if (counter == number + 1) {
-				++registers.ip;
-				return;
-			}
-		}
+
+	if (number == 0) {
+		registers.ip = 0;
+		return;
 	}
-	registers.ip = 256;
+
+	int current_instr = 0;
+	registers.ip = 0;
+
+	while (registers.ip < 256 && current_instr < number) {
+		short len = get_instruction_length(get_memory()[registers.ip]);
+		registers.ip += len;
+		current_instr++;
+	}
+
+	if (current_instr == number) {
+		return; 
+	}
+
+	registers.ip = 256; 
 }
 
+
+
 void CPU::jmp_if(bool condition) {
+
 	if (condition) {
 		jump_by_instruction(memory[++registers.ip]);
 	}
@@ -49,53 +59,83 @@ void CPU::jmp_if(bool condition) {
 	}
 }
 
+
 void CPU::do_operation_of(char operator_) {
-	int8_t result;
+
+	int8_t result = 0;
 	registers.ip++;
 	uint8_t reg1 = memory[registers.ip];
 	registers.ip++;
 	uint8_t reg2 = memory[registers.ip];
-
+	
 	switch (operator_) {
 	case 'm':
 		result = reg2;
 		break;
 	case '-':
-		result = reg1 - reg2;
+		result = registers.arithmetic[reg1 - 1] - reg2;
 		break;
 
 	case '+':
-		result = reg1 + reg2;
+		result = registers.arithmetic[reg1 - 1] + reg2;
 		break;
 
 	case '*':
-		result = reg1 * reg2;
+		result = registers.arithmetic[reg1 - 1] * reg2;
 		break;
 
 	case '/':
-		result = reg1 / reg2;
+		result = registers.arithmetic[reg1 - 1] / reg2;
 		break;
 
 	case '^':
-		result = reg1 ^ reg2;
+		result = registers.arithmetic[reg1 - 1] ^ reg2;
 		break;
 
 	case '&':
-		result = reg1 & reg2;
+		result = registers.arithmetic[reg1 - 1] & reg2;
 		break;
 
 	case '|':
-		result = reg1 | reg2;
+		result = registers.arithmetic[reg1 - 1] | reg2;
 		break;
 	default:
+		registers.flags.halted = true;
 		break;
 	}
+
 	registers.arithmetic[reg1 - 1] = result;
 	registers.ip++;
+
 }
 
-void CPU::execute(uint8_t opcode) {
+short CPU::get_instruction_length(uint8_t opcode) {
+	std::map<uint8_t, short> instruction_to_length;
+	instruction_to_length[0x00] = 1;
+	instruction_to_length[0x01] = 3;
+	instruction_to_length[0x02] = 3;
+	instruction_to_length[0x03] = 3;
+	instruction_to_length[0x04] = 3;
+	instruction_to_length[0x05] = 3;
+	instruction_to_length[0x06] = 3;
+	instruction_to_length[0x08] = 3;
+	instruction_to_length[0x09] = 2;
+	instruction_to_length[0x0A] = 2;
+	instruction_to_length[0x0B] = 2;
+	instruction_to_length[0x0C] = 2;
+	instruction_to_length[0x0D] = 2;
+	instruction_to_length[0x0E] = 2;
+	instruction_to_length[0x0F] = 2;
+	instruction_to_length[0x10] = 2;
+	instruction_to_length[0x11] = 2;
+	instruction_to_length[0x12] = 3;
+	instruction_to_length[0x13] = 1;
 
+	return instruction_to_length[opcode];
+}
+
+
+void CPU::execute(uint8_t opcode) {
 	if (registers.flags.halted) std::exit(0);
 
 	switch (opcode) {
@@ -144,11 +184,11 @@ void CPU::execute(uint8_t opcode) {
 		break;
 	}
 	case 0xA: { // JEQ, JZ
-		jmp_if(registers.flags.zero);
+		jmp_if(registers.flags.equal);
 		break;
 	}
 	case 0xB: { // JNE, JNZ
-		jmp_if(!registers.flags.zero);
+		jmp_if(!registers.flags.equal);
 		break;
 	}
 	case 0xC: { // JC
@@ -185,16 +225,13 @@ void CPU::execute(uint8_t opcode) {
 			registers.ip++;
 			if (registers.ip < 256 && memory[registers.ip] != 0x00) {
 				int8_t reg2 = registers.arithmetic[get_memory()[registers.ip] - 1];
-
 				int8_t result = reg1 - reg2;
 				registers.flags.carry = (result < 0);
 				registers.flags.sign = ((result < 0) ? -1 : 1);
 				registers.flags.parity = ((result % 2 == 0) ? 1 : 0);
 				registers.flags.zero = (result == 0);
 				registers.flags.equal = (reg1 == reg2);
-
-				while (registers.ip < 256 && memory[registers.ip] != 0x00) registers.ip++;
-				//registers.ip++;  
+				registers.ip++;
 			}
 			else {
 				registers.flags.halted = true;

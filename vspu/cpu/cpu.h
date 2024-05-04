@@ -1,5 +1,5 @@
 #pragma once
-
+#include <map>
 #include <cstdint>
 
 struct Flags {
@@ -32,6 +32,7 @@ public:
 
 private:
     int8_t memory[256];
+    short get_instruction_length(uint8_t opcode);
     void jump_by_instruction(uint8_t number);
     void jmp_if(bool condition);
     void do_operation_of(char operator_);
