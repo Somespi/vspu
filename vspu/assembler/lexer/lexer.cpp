@@ -88,7 +88,7 @@ std::vector<Token> Lexer::lex() {
         }
         advance(&index);
     }
-
+    tokens.push_back({ TokenType::END, pos.clone(), "\0" });
     return tokens;
 }
 
