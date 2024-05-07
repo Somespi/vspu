@@ -24,7 +24,11 @@ int main() {
        
     }*/
 
-    Lexer lexer("<stdout>", "0x3456");
+    Lexer lexer("<stdout>", 
+        R"(MOV 34, #223
+           LOLZ 23, 0x24
+     
+        )");
     std::vector<Token> tokens = lexer.lex();
     for (auto token : tokens) {
         std::cout << "{\n"

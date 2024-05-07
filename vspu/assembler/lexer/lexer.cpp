@@ -1,5 +1,4 @@
 #include "lexer.h"
-#include <cctype>
 
 Cursor* Cursor::clone() {
 	return new Cursor(*this);
@@ -29,13 +28,36 @@ void Lexer::parse_digit(int* current) {
 
     while (*current < source_code.size() && std::isdigit(source_code[*current])) {
         number += source_code[*current];
-        advance(current);
+        if (*current + 1 < source_code.size() && std::isdigit(source_code[*current + 1])) {
+            advance(current);
+        }
+        else {
+            break;
+        }
     }
 
     tokens.push_back({
         type,
         pos.clone(),
         number
+        });
+}
+
+void Lexer::parse_instruction(int* current) {
+    std::string instruction;
+
+    while (*current < source_code.size() && std::isalpha(source_code[*current])) {
+        instruction += source_code[*current];
+        if (*current + 1 < source_code.size() && std::isalpha(source_code[*current + 1])) {
+            advance(current);
+        }
+        else {
+            break;
+        }
+    }
+    tokens.push_back({ TokenType::INSTRUCTION, 
+       pos.clone(),
+       instruction
         });
 }
 
@@ -47,6 +69,22 @@ std::vector<Token> Lexer::lex() {
         char current_char = source_code[index];
         if (isdigit(current_char)) {
             parse_digit(&index);
+        }
+        else if (current_char == ',') {
+            tokens.push_back({TokenType::COMMA, pos.clone(), ","});
+        }
+        else if (current_char == '#') {
+            tokens.push_back({ TokenType::HASH, pos.clone(), "#" });
+        }
+        else if (isspace(current_char) || current_char == '\n') {
+            // ignore
+        }
+        else if (isalpha(current_char)) {
+            parse_instruction(&index);
+        }
+        else {
+            std::cerr << filename << ": Unrecognied token \"" << current_char << "\" at " << pos.column << ':' << pos.line;
+            std::exit(0);
         }
         advance(&index);
     }
