@@ -5,12 +5,22 @@ Cursor* Cursor::clone() {
 	return new Cursor(*this);
 }
 
+void Lexer::advance(int *current) {
+    (*current)++;
+    if ((*current) == '\n') {
+        pos.line++;
+        pos.column = 0;
+    }
+    else pos.column++;
+}
+
 void Lexer::parse_digit(int* current) {
     std::string number = "";
     TokenType type;
 
     if (source_code[*current] == '0' && *current + 1 < source_code.size() && source_code[*current + 1] == 'x') {
-        (*current) += 2;
+        advance(current);
+        advance(current);
         type = TokenType::HEX_ZERO;
         number += "0x";
     }
@@ -19,7 +29,7 @@ void Lexer::parse_digit(int* current) {
 
     while (*current < source_code.size() && std::isdigit(source_code[*current])) {
         number += source_code[*current];
-        (*current)++;
+        advance(current);
     }
 
     tokens.push_back({
@@ -38,7 +48,7 @@ std::vector<Token> Lexer::lex() {
         if (isdigit(current_char)) {
             parse_digit(&index);
         }
-        index++;
+        advance(&index);
     }
 
     return tokens;

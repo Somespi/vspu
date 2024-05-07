@@ -33,6 +33,7 @@ private:
 	std::string filename;
 	std::string source_code;
 	void parse_digit(int* current);
+	void advance(int* current);
 public:
 	std::vector<Token> lex();
 	Lexer(std::string filename, std::string source_code);

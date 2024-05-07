@@ -28,8 +28,12 @@ int main() {
     std::vector<Token> tokens = lexer.lex();
     for (auto token : tokens) {
         std::cout << "{\n"
-            << "   type:    " << (int)token.type << "\n"
-            << "   literal: " << token.literal << "\n"
+            << "   Type:    " << (int)token.type << "\n"
+            << "   Literal: " << token.literal << "\n"
+            << "   Position: {"  << std::endl
+            << "       Line:   " << token.pos->line << '\n'
+            << "       Column: " << token.pos->column << '\n'
+            << "   }\n"
             "}\n";
     }
     return 0;
