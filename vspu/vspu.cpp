@@ -1,6 +1,7 @@
 ﻿#include "vspu.h"
 #include "cpu/cpu.h"
 #include "assembler/lexer/lexer.h"
+#include "assembler/parser/parser.h"
 
 int main() {
     CPU cpu;
@@ -24,21 +25,23 @@ int main() {
        
     }*/
 
-    Lexer lexer("<stdout>", 
-        R"(MOV 34, #223
-           LOLZ 23, 0x24
-     
+   Lexer lexer("<stdout>",
+        R"(MOV r0x34, #223
+           ADD r0x2, #6
+           
         )");
-    std::vector<Token> tokens = lexer.lex();
-    for (auto token : tokens) {
+    
+    Parser parser(lexer.lex());
+    Program parsed = parser.parse();
+    for (auto& instruction : parsed.instructions) {
         std::cout << "{\n"
-            << "   Type:    " << (int)token.type << "\n"
-            << "   Literal: " << token.literal << "\n"
-            << "   Position: {"  << std::endl
-            << "       Line:   " << token.pos->line << '\n'
-            << "       Column: " << token.pos->column << '\n'
-            << "   }\n"
-            "}\n";
-    }
+            << "    Instruction: " << instruction.instruction << ",\n"
+            << "    Inputs: {" << "\n";
+            for (auto& input : instruction.inputs) {
+                std::cout << "        " << input.value << ",\n";
+            }
+            std::cout << "    }\n}\n";
+    } 
+
     return 0;
 }

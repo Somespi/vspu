@@ -3,16 +3,18 @@
 #include <cctype>
 #include <iostream>
 #include <string> 
+#include "../lexer/lexer.h"
 
 enum TokenType {
 	END, 
 	INSTRUCTION,
 	REGISTER,
 	HASH,
-	HEX_ZERO,
+	HEX,
 	NUMBER, 
 	COMMA,
-	SEMICOLON
+	SEMICOLON,
+	NEWLINE
 };
 
 class Cursor {

@@ -4,13 +4,20 @@ Cursor* Cursor::clone() {
 	return new Cursor(*this);
 }
 
-void Lexer::advance(int *current) {
+void Lexer::advance(int* current) {
     (*current)++;
-    if ((*current) == '\n') {
+    if ((*current) >= source_code.size()) {
+        return;
+    }
+
+    if (source_code[(*current)] == '\n') {
+        tokens.push_back({ TokenType::NEWLINE, pos.clone(), "\n" });
         pos.line++;
         pos.column = 0;
     }
-    else pos.column++;
+    else {
+        pos.column++;
+    }
 }
 
 void Lexer::parse_digit(int* current) {
@@ -20,7 +27,7 @@ void Lexer::parse_digit(int* current) {
     if (source_code[*current] == '0' && *current + 1 < source_code.size() && source_code[*current + 1] == 'x') {
         advance(current);
         advance(current);
-        type = TokenType::HEX_ZERO;
+        type = TokenType::HEX;
         number += "0x";
     }
     else  type = TokenType::NUMBER;
@@ -114,5 +121,7 @@ std::vector<Token> Lexer::lex() {
 Lexer::Lexer(std::string filename, std::string source_code) {
 	this->filename = filename;
     pos.filename = filename;
+    pos.line = 0;
+    pos.column = 0;
 	this->source_code = source_code;
 }
