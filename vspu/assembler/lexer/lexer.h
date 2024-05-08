@@ -11,7 +11,8 @@ enum TokenType {
 	HASH,
 	HEX_ZERO,
 	NUMBER, 
-	COMMA
+	COMMA,
+	SEMICOLON
 };
 
 class Cursor {
@@ -36,6 +37,7 @@ private:
 	std::string source_code;
 	void parse_digit(int* current);
 	void parse_instruction(int* current);
+	void parse_comment(int* current);
 	void advance(int* current);
 public:
 	std::vector<Token> lex();

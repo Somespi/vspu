@@ -47,7 +47,7 @@ void Lexer::parse_instruction(int* current) {
     std::string instruction;
 
     while (*current < source_code.size() && std::isalpha(source_code[*current])) {
-        instruction += source_code[*current];
+        instruction += tolower(source_code[*current]);
         if (*current + 1 < source_code.size() && std::isalpha(source_code[*current + 1])) {
             advance(current);
         }
@@ -62,6 +62,21 @@ void Lexer::parse_instruction(int* current) {
 }
 
 
+void Lexer::parse_comment(int* current) {
+    tokens.push_back({ TokenType::SEMICOLON, pos.clone(), ";" });
+    advance(current);
+
+    while (*current < source_code.size() && source_code[*current] != '\n') {
+        if ((*current + 1 < source_code.size() && source_code[*current + 1]  != '\n')) {
+            advance(current);
+        }
+        else {
+            break;
+        }
+    }
+
+}
+
 std::vector<Token> Lexer::lex() {
     int index = 0;
 
@@ -72,6 +87,9 @@ std::vector<Token> Lexer::lex() {
         }
         else if (current_char == ',') {
             tokens.push_back({TokenType::COMMA, pos.clone(), ","});
+        }
+        else if (current_char == ';') {
+            parse_comment(&index);
         }
         else if (current_char == '#') {
             tokens.push_back({ TokenType::HASH, pos.clone(), "#" });
@@ -95,5 +113,6 @@ std::vector<Token> Lexer::lex() {
 
 Lexer::Lexer(std::string filename, std::string source_code) {
 	this->filename = filename;
+    pos.filename = filename;
 	this->source_code = source_code;
 }
