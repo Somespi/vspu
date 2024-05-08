@@ -70,7 +70,6 @@ void Lexer::parse_instruction(int* current) {
 
 
 void Lexer::parse_comment(int* current) {
-    tokens.push_back({ TokenType::SEMICOLON, pos.clone(), ";" });
     advance(current);
 
     while (*current < source_code.size() && source_code[*current] != '\n') {

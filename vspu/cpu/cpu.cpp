@@ -136,7 +136,7 @@ short CPU::get_instruction_length(uint8_t opcode) {
 
 
 void CPU::execute(uint8_t opcode) {
-	if (registers.flags.halted) std::exit(0);
+	if (registers.flags.halted) std::exit(1);
 
 	switch (opcode) {
 	case 0x00: // NOP
